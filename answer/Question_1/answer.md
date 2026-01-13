@@ -55,7 +55,7 @@
 **1. 问题类型：** 易用性问题 
 
 **2. 问题描述**
-> 在创建c/C++project时，在esclipse中没有相关选项，而在RuyiSedk-IDE中可以直接创建C/C++project
+> 在创建C/C++project时，在esclipse中没有相关选项，而在RuyiSedk-IDE中可以直接创建C/C++project
 
 **3. 复现步骤**
 1.  启动Eclipse，点击菜单 `File -> New `
