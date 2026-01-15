@@ -1,6 +1,8 @@
 # Ruyi URL Checker Bot
 
 >一个自动化 `Bot`，用于定期检查 `ruyisdk/packages-index` 项目中 `board-image` 目录下 `TOML` 配置文件的资源 `URL` 可达性（含 `mirror://` 格式 `URL`），并基于 `FastAPI` 提供查询接口。
+## Question 3
+>理解 ruyi-packaging 项目，这个项目试图实现 packages-index/board-image 的自动更新，使用 check 命令检查上游更新，使用 manifests 命令生成指定版本的 toml 配置。其中以 openbsd-riscv64-live 为例，其使用了 mirror:// 格式的 url，其声明见 config.toml，不难发现 openbsd 声明的 url 中并不是每个 url 都有相关资源可供下载。请实现一个 bot，定期检查这些资源的可用性（url 是否可达），并以 Fast API 的方式提供查询接口。对于 mirror:// 格式 url 的资源，则需要标记其中每个 url 的可用性。将代码提交到个人 GitHub 账号下的公开仓库中。
 
 
 ## 核心功能
