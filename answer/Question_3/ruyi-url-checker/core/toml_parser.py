@@ -1,80 +1,107 @@
-# core/toml_parser.py
-import os
-import tomlkit
+import toml
+from pathlib import Path
 from utils.logger import logger
-from dotenv import load_dotenv
+from utils.exceptions import TOMLParseError
+from core.repo_sync import LOCAL_REPO_PATH
 
-load_dotenv()
-REPO_LOCAL_PATH = os.getenv("REPO_LOCAL_PATH")
-CONFIG_TOML_PATH = os.path.join(REPO_LOCAL_PATH, "config.toml")
-BOARD_IMAGE_PATH = os.path.join(REPO_LOCAL_PATH, "manifests/board-image")
+# 配置文件路径（关联packages-index仓库）
+CONFIG_TOML_PATH = LOCAL_REPO_PATH / "config.toml"
 
 
-def parse_mirror_mapping():
-    """解析 config.toml 中的 mirror 映射（如 openbsd -> [url1, url2]）"""
+def load_mirror_config() -> dict:
+    """
+    核心修复：加载config.toml并转换为{镜像ID: {urls: 地址列表}}的字典
+    解决[[mirrors]]数组无法通过ID直接读取的问题
+    """
     try:
+        if not CONFIG_TOML_PATH.exists():
+            logger.warning(f"⚠️ config.toml不存在: {CONFIG_TOML_PATH}")
+            return {}
+
         with open(CONFIG_TOML_PATH, "r", encoding="utf-8") as f:
-            config = tomlkit.load(f)
-        # 提取 mirror 部分
-        mirror_mapping = config.get("mirror", {})
-        # 转换格式：mirror["openbsd"] = ["url1", "url2"]
-        result = {}
-        for mirror_name, mirror_info in mirror_mapping.items():
-            result[mirror_name] = mirror_info.get("url", [])
-        logger.info(f"解析到 {len(result)} 个 mirror 映射")
-        return result
+            config = toml.load(f)
+
+        # 关键：将[[mirrors]]数组转换为镜像ID映射的字典
+        mirror_config = {}
+        for mirror in config.get("mirrors", []):
+            mirror_id = mirror.get("id")
+            mirror_urls = mirror.get("urls", [])
+            if mirror_id and mirror_urls:
+                mirror_config[mirror_id] = {"urls": mirror_urls}
+
+        # 调试日志：确认revyos配置是否加载
+        if "revyos" in mirror_config:
+            logger.info(f"✅ 成功加载revyos镜像配置: {mirror_config['revyos']['urls']}")
+        else:
+            logger.error(f"❌ 未加载到revyos镜像配置！已加载的镜像ID: {list(mirror_config.keys())}")
+
+        return mirror_config
     except Exception as e:
-        logger.error(f"解析 config.toml 失败: {str(e)}")
-        return {}
+        logger.error(f"❌ 加载mirror配置失败: {str(e)}")
+        raise TOMLParseError(f"mirror配置解析失败: {str(e)}")
 
 
-def parse_board_image_urls():
-    """解析 board-image 下所有 toml 文件的 URL，处理 mirror:// 格式"""
-    mirror_mapping = parse_mirror_mapping()
-    if not mirror_mapping:
-        logger.error("mirror 映射解析失败，终止 URL 解析")
-        return []
+def resolve_mirror_url(url: str, mirror_config: dict) -> list[str]:
+    """
+    核心修复：读取urls（复数）而非url（单数），完善异常处理
+    """
+    if not url.startswith("mirror://"):
+        return [url]
 
-    url_items = []  # 存储所有需要检查的 URL 项：(board_name, version, original_url, actual_urls)
-    # 遍历 board-image 下的所有目录（每个目录对应一个 board）
-    for board_name in os.listdir(BOARD_IMAGE_PATH):
-        board_dir = os.path.join(BOARD_IMAGE_PATH, board_name)
-        if not os.path.isdir(board_dir):
-            continue
-        # 遍历目录下的 toml 文件（每个文件对应一个版本）
-        for toml_file in os.listdir(board_dir):
-            if not toml_file.endswith(".toml"):
-                continue
-            version = toml_file.replace(".toml", "")
-            toml_path = os.path.join(board_dir, toml_file)
-            try:
-                with open(toml_path, "r", encoding="utf-8") as f:
-                    toml_data = tomlkit.load(f)
-                # 提取 URL 字段（不同 toml 可能字段名不同，参考 openbsd-riscv64-live 的示例）
-                original_url = toml_data.get("url")
-                if not original_url:
-                    continue
-                # 处理 mirror:// 格式
-                actual_urls = []
-                if original_url.startswith("mirror://"):
-                    # 解析 mirror 名称：mirror://openbsd/xxx -> openbsd
-                    mirror_name = original_url.split("//")[1].split("/")[0]
-                    mirror_base_urls = mirror_mapping.get(mirror_name, [])
-                    # 拼接完整 URL：mirror_base_url + /xxx
-                    path = original_url.split(f"mirror://{mirror_name}")[1]
-                    actual_urls = [f"{base_url}{path}" for base_url in mirror_base_urls]
-                else:
-                    actual_urls = [original_url]
+    try:
+        # 拆分mirror名称和路径，处理空值
+        mirror_part = url.replace("mirror://", "").split("/", 1)
+        if not mirror_part or not mirror_part[0]:
+            logger.warning(f"⚠️ 无效的mirror URL格式: {url}")
+            return []
 
-                url_items.append({
-                    "board_name": board_name,
-                    "version": version,
-                    "original_url": original_url,
-                    "actual_urls": actual_urls,
-                    "is_mirror": original_url.startswith("mirror://")
-                })
-            except Exception as e:
-                logger.error(f"解析 {toml_path} 失败: {str(e)}")
-                continue
-    logger.info(f"解析到 {len(url_items)} 个需要检查的 URL 项")
-    return url_items
+        mirror_name = mirror_part[0].strip()
+        path = mirror_part[1].strip() if len(mirror_part) > 1 else ""
+
+        # 核心修复：读取urls（复数）
+        mirror_item = mirror_config.get(mirror_name, {})
+        mirror_urls = mirror_item.get("urls", [])
+
+        if not mirror_urls:
+            logger.warning(f"⚠️ mirror「{mirror_name}」无配置URL | 已加载镜像: {list(mirror_config.keys())}")
+            return []
+
+        # 拼接完整URL，避免//重复
+        full_urls = []
+        for base in mirror_urls:
+            clean_base = base.rstrip("/")
+            clean_path = path.lstrip("/")
+            full_url = f"{clean_base}/{clean_path}" if clean_path else clean_base
+            full_urls.append(full_url)
+
+        logger.debug(f"解析mirror URL: {url} → {full_urls}")
+        return full_urls
+    except IndexError as e:
+        logger.error(f"❌ 解析mirror URL失败: URL格式异常 {url} | 错误: {str(e)}")
+        raise TOMLParseError(f"mirror URL格式异常 {url}: {str(e)}")
+    except Exception as e:
+        logger.error(f"❌ 解析mirror URL失败: {str(e)}")
+        raise TOMLParseError(f"mirror URL解析失败: {str(e)}")
+
+
+def parse_toml_file(toml_path: Path) -> list[str]:
+    """解析单个TOML文件，提取所有待检查的URL（逻辑不变）"""
+    try:
+        with open(toml_path, "r", encoding="utf-8") as f:
+            data = toml.load(f)
+
+        urls = []
+        # 格式1：[[distfiles]]数组
+        distfiles = data.get("distfiles", [])
+        if isinstance(distfiles, list):
+            for df in distfiles:
+                urls.extend(df.get("urls", []))
+        # 格式2：source.url
+        source_url = data.get("source", {}).get("url")
+        if source_url:
+            urls.append(source_url)
+
+        return list(set(urls))  # 去重
+    except Exception as e:
+        logger.error(f"❌ 解析TOML文件「{toml_path}」失败: {str(e)}")
+        raise TOMLParseError(f"TOML文件解析失败: {str(e)}")

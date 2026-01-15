@@ -83,13 +83,6 @@ INFO:     克隆仓库 https://github.com/ruyisdk/packages-index.git 到 data/pa
 INFO:     解析到 X 个 mirror 映射
 INFO:     全量检查完成，共检查 X 个 URL 项
 INFO:     定时任务已启动，检查间隔：86400 秒
-```
-## 接口文档
-服务启动后，可通过以下地址访问自动生成的接口文档：
-
-Swagger UI：http://localhost:7777/docs
-
-ReDoc：http://localhost:7777/redoc
 
 ## 项目结构
 ``` 

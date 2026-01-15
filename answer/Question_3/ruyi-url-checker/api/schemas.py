@@ -1,21 +1,27 @@
-# api/schemas.py
 from pydantic import BaseModel
-from typing import Optional, List
+from datetime import datetime
+from typing import List, Optional
 
-# 单个检查结果的模型
-class URLCheckResult(BaseModel):
-    id: int
-    board_name: str
-    version: str
-    original_url: str
-    actual_url: str
-    is_mirror: bool
-    is_reachable: bool
-    status_code: Optional[int]
-    error_msg: Optional[str]
-    check_time: str
 
-# 批量结果的模型
-class URLCheckResultList(BaseModel):
-    total: int
-    results: List[URLCheckResult]
+# 单个URL的检查状态
+class URLStatus(BaseModel):
+    url: str
+    is_available: bool
+    status_code: Optional[int] = None
+    response_time: Optional[float] = None  # 秒
+    check_time: datetime
+    error_msg: Optional[str] = None
+
+
+# 单个board-image的检查结果
+class BoardImageStatus(BaseModel):
+    name: str  # board-image名称（如milkv-duo）
+    version: str  # 版本号（如1.1.2）
+    urls: List[URLStatus]
+
+
+# 接口统一返回格式
+class CheckResponse(BaseModel):
+    success: bool
+    data: Optional[List[BoardImageStatus]] = None
+    message: Optional[str] = None

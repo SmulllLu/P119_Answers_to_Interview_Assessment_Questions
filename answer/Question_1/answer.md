@@ -75,51 +75,75 @@
 **7. 附件**
 *   **截图:** `issue_1_Eclipse.png` 
    
-   ![问题1截图](./assets/issue_1_Eclipse.png)`
+   ![问题1截图](./assets/issue_1_Eclipse.png)
 
 *   **截图:** `issue_2_RuyiSDK-IDE.png` 
    
-   ![问题1截图](./assets/issue_1_RuyiSDK-IDE.png)`
+   ![问题1截图](./assets/issue_1_RuyiSDK-IDE.png)
 
 
-#### 问题 2: [简短明确的标题，如“安装向导在特定步骤卡顿”]
+#### 问题 2: Eclipse与RuyiSDK-IDE的Board-Model直接选项比较少并且在缺少相关Board-Model时，不能引导直接安装Board-Model
 
-**1. 问题类型** (单选)
-- [ ] 功能缺陷 (功能无法工作或行为错误)
-- [ ] 易用性问题 (界面不清、操作繁琐)
-- [ ] 稳定性缺陷 (崩溃、无响应)
-- [ ] 兼容性问题 (与特定系统/软件不兼容)
-- [ ] 文档缺陷 (说明缺失或错误)
+**1. 问题类型：** 易用性问题 
 
 **2. 问题描述**
-清晰描述观察到的错误现象或不良体验。避免使用模糊词汇，力求具体。
-> 例如：在使用“新建RISC-V项目”向导时，当在第二步选择“Nuclei SDK”作为开发板支持包后，点击“下一步”按钮无任何反应，界面卡死，只能强制关闭窗口。
+> 在选择创建新项目时，会要求用户选择`Board-Model`,但是默认只有`milkv-duo`与`default`两个选项,可供用户直接选的比较少
+
+**3. 复现步骤**
+1.  启动Eclipse或RuyiSDK-IDE，点击菜单 `File -> New -> RuyiSDK Project`
+2.  `choose Board-Model`对话框，点击`Board-Model`下拉框
+
+**4. 预期结果**
+出现相关Board-Model选项，并且提供Board-Model的下载引导
+
+**5. 实际结果**
+只有`milkv-duo`与`default`两个选项，并且不提供相关`Board-Model`下载引导
+
+**6. 严重程度** 
+- **一般** (次要功能问题，对主要流程影响不大)
+
+**7. 附件**
+*   **截图:** `issue_2_Eclipse_choose-Board-Model对话框.png` 
+   
+![问题2截图](./assets/issue_2_Eclipse_choose-Board-Model对话框.png)
+
+*   **截图:** `issue_2_RuyiSDK-IDE_choose-Board-Model对话框.png`
+
+   ![问题2截图](./assets/issue_2_RuyiSDK-IDE_choose-Board-Model对话框.png)
+
+#### 问题 3: [简短明确的标题，如“安装向导在特定步骤卡顿”]
+
+**1. 问题类型：** 功能缺陷 
+
+**2. 问题描述**
+> 在使用Eclipse进行创建RuyiSDK项目是，创建结束只出现虚拟环境，而没有初始化项目，在RuyiSDK-IDE中可以自动创建初始化项目
 
 **3. 复现步骤**
 列出能让其他测试人员稳定复现该问题的步骤。
-1.  第一步操作 (如：启动Eclipse，点击菜单 `File -> New -> RuyiSDK Project`)
-2.  第二步操作
-3.  ... (直到问题出现)
-> *提示：步骤应详尽且可操作。*
+1.  启动Eclipse，点击菜单 `File -> New -> RuyiSDK Project`
+2.  选择`Board-Model`，创建项目之后页面没有动静
+3.  启动RuyiSDK-IDE，点击菜单 `File -> New -> RuyiSDK Project`
+4.  选择`Board-Model`，创建项目之后会自动创建C语言初始项目
 
 **4. 预期结果**
-描述按照设计或常识，正确操作后应该发生什么。
-> 例如：点击“下一步”后，应正常进入向导的第三步，允许用户配置项目细节。
+出现初始化程序
 
 **5. 实际结果**
-描述实际发生了什么，与预期不符的地方。
-> 例如：点击“下一步”后，界面完全卡住，鼠标指针变为等待状态，持续超过2分钟无变化。Eclipse主界面仍可响应，但无法进行其他项目操作。
+在Eclipse中没有初始化程序，在RuyiSDK-IDE有初始化程序
 
-**6. 严重程度** (单选)
-- [ ] **严重** (导致核心功能完全失效、数据丢失、系统崩溃)
-- [ ] **主要** (重要功能受影响，但存在变通方法)
-- [ ] **一般** (次要功能问题，对主要流程影响不大)
-- [ ] **轻微** (界面错别字、布局轻微错位等)
+**6. 严重程度** 
+- **主要** (重要功能受影响，但存在变通方法)
 
 **7. 附件 (如有)**
-请附上相关截图、错误日志或屏幕录制文件，并将其上传至本次报告所在的GitHub仓库的 `assets/` 或 `screenshots/` 目录下。
-*   **截图/日志文件名:** `issue_[编号]_[描述].png/log` (例如：`issue_01_wizard_stuck.png`)
-*   **图片插入方式：** `![问题1截图](assets/issue_01_wizard_stuck.png)`
+
+*   **截图:** `issue_3_Eclipse无初始化程序.png` 
+
+![问题3截图](assets/issue_3_Eclipse无初始化程序.png)
+
+*   **截图:** `issue_3_RuyiSDK-IDE有初始化程序.png` 
+
+![问题3截图](assets/issue_3_RuyiSDK-IDE有初始化程序.png)
+
 
 
 #### 问题 [编号]: [简短明确的标题，如“安装向导在特定步骤卡顿”]
