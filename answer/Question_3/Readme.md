@@ -74,16 +74,6 @@ source venv/bin/activate
 python main.py
 ```
 
-启动成功后，终端会输出类似日志：
-
-```plaintext
-INFO:     Uvicorn running on http://0.0.0.0:7777 (Press CTRL+C to quit)
-INFO:     启动 Ruyi URL Checker Bot...
-INFO:     克隆仓库 https://github.com/ruyisdk/packages-index.git 到 data/packages-index
-INFO:     解析到 X 个 mirror 映射
-INFO:     全量检查完成，共检查 X 个 URL 项
-INFO:     定时任务已启动，检查间隔：86400 秒
-
 ## 项目结构
 ``` 
 ruyi-url-checker/
