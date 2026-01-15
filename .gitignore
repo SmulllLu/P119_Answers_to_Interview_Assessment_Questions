@@ -1,0 +1,23 @@
+# 编辑器配置
+.idea/
+
+# Python 缓存文件
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# 日志文件
+logs/
+*.log
+
+# 数据库文件
+*.db
+data/results.db
+
+# 环境变量文件（如果有敏感信息）
+.env
+
+# 运行时生成的目录
+data/packages-index/
+
